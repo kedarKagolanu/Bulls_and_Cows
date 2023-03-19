@@ -1,92 +1,78 @@
 package bullscows;
 
-import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.Scanner;
-import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
+        String sizeString = null;
 
-        System.out.println("Please, enter the secret code's length:");
-        int size = input.nextInt();
-        if(size > 10) {
-            System.out.println("Error: can't generate a secret number with a length of 11 because there aren't enough unique digits.");
-            return;
-        }
-        double val = 0;
-        double temp;
-        Set<Double> set = new HashSet<>();
-        temp = Math.floor(Math.random() * 10);
-        for(int i=0;i<size;i++) {
-            while(set.contains(temp)) {
-                temp = Math.floor(Math.random() * 10);
+        try{
+            System.out.println("Input the length of the secret code:");
+            sizeString = input.next();
+            int size = Integer.parseInt(sizeString);
+            System.out.println("Input the number of possible symbols in the code:");
+            int range = input.nextInt();
+
+            if(size == 0) {
+                throw new Exception("Error; cannot create a code with zero size.");
+            } else if(range > 36) {
+                throw new Exception("Error: maximum number of possible symbols in the code is 36 (0-9, a-z).");
+            } else if(size > range) {
+                throw new Exception("Error: it's not possible to generate a code with a length of 6 with 5 unique symbols.");
             }
-            set.add(temp);
-            val = val * 10 + temp;
-        }
 
-        String secretCode = Double.toString(val);
-        System.out.println(secretCode);
-
-        System.out.println("Okay, let's start a game!");
-        int noofbulls = 0;
-        int noofcows = 0;
-        String inputCode;
-        int noofturns = 0;
-        char tmp;
-        while(noofbulls != size) {
-            noofturns++;
-            noofbulls = 0;
-            noofcows = 0;
-            System.out.println("\nTurn " + noofturns + ":");
-            inputCode = input.next();
-
-            String tempString = inputCode;
-            if(tempString.length() != size) {
-                continue;
+            if(size > 10) {
+                System.out.println("Error: can't generate a secret number with a length of 11 because there aren't enough unique digits.");
+                return;
             }
+
+            int charRange;
+            if(range < 10) {
+                charRange = 0;
+            }else if(range < 26){
+                charRange = (range - 10) % 26;
+            } else {
+                charRange = 26;
+            }
+
+            String secretCode = CodeGenerator.generateCode(size,charRange);
+            System.out.println(secretCode);
+
+            System.out.print("\nThe secret is prepared: ");
             for(int i=0;i<size;i++) {
-                if(secretCode.charAt(i) == inputCode.charAt(i)) {
-                    noofbulls++;
-                    continue;
+                System.out.print("*");
+            }
+            System.out.print(" (0-9, a-" + (char)(97+charRange-1) + ").");
+            System.out.println("Okay, let's start a game!");
+
+
+            int noofbulls = 0;
+            int noofcows;
+            String inputCode;
+            int noofturns = 0;
+            while(noofbulls != size) {
+                noofturns++;
+                System.out.println("\nTurn " + noofturns + ":");
+                inputCode = input.next();
+
+                if(inputCode.length() != size) {
+                    throw new Exception("Error: The length of input is not equal to the secretCode's length");
                 }
 
-                for(int j=0;j<size;j++) {
-                    if(i==j) {
-                        continue;
-                    }
 
-                    if(secretCode.charAt(i) == inputCode.charAt(j)){
-                        noofcows++;
-                    }
-                }
-            }
 
-            System.out.print("Grade: ");
-            if(noofbulls > 0) {
-                System.out.print(noofbulls);
-                if(noofbulls == 1) {
-                    System.out.print(" bull");
-                } else {
-                    System.out.print(" bulls");
-                }
-            }
-            if(noofbulls > 0 && noofcows > 0) {
-                System.out.print(" and ");
-            }
-            if(noofcows > 0) {
-                System.out.print(noofcows);
-                if(noofcows == 1) {
-                    System.out.print(" cow");
-                } else {
-                    System.out.print(" cows");
-                }
-            }
+                var list = CodeValidator.getBullsAndCowsCount(secretCode,inputCode);
+                noofbulls = list.get(0);
+                noofcows = list.get(1);
 
-            if(noofbulls == 0 && noofcows == 0) {
-                System.out.print("None.");
+                GradePresenter.printGrade(noofbulls,noofcows);
             }
+        } catch (NumberFormatException e) {
+            System.out.print("Error : \"" + sizeString + "\" isn't a valid number.");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
         System.out.println("Congratulations! You guessed the secret code.");
