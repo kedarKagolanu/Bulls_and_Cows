@@ -14,46 +14,52 @@ public class Main {
             System.out.println("Error: can't generate a secret number with a length of 11 because there aren't enough unique digits.");
             return;
         }
-
-        Set<Integer> set = new HashSet<Integer>();
-        int val = 0;
-        long pseudoRandomNumber = System.nanoTime() % 9;
+        double val = 0;
+        double temp;
+        Set<Double> set = new HashSet<>();
+        temp = Math.floor(Math.random() * 10);
         for(int i=0;i<size;i++) {
-            while(set.contains((int)pseudoRandomNumber) || (i==0 && pseudoRandomNumber==0)) {
-                pseudoRandomNumber = System.nanoTime() % 9;
+            while(set.contains(temp)) {
+                temp = Math.floor(Math.random() * 10);
             }
-            val = val*10 + (int)pseudoRandomNumber;
-            set.add((int)pseudoRandomNumber);
+            set.add(temp);
+            val = val * 10 + temp;
         }
-        String secretCode = Integer.toString(val);
 
+        String secretCode = Double.toString(val);
+        System.out.println(secretCode);
 
         System.out.println("Okay, let's start a game!");
         int noofbulls = 0;
         int noofcows = 0;
         String inputCode;
         int noofturns = 0;
+        char tmp;
         while(noofbulls != size) {
             noofturns++;
+            noofbulls = 0;
+            noofcows = 0;
             System.out.println("\nTurn " + noofturns + ":");
             inputCode = input.next();
 
-            char temp;
             String tempString = inputCode;
-            if(tempString.length() < size) {
+            if(tempString.length() != size) {
                 continue;
             }
             for(int i=0;i<size;i++) {
-                temp = tempString.charAt(i);
-
-                if(temp == '_')
-                    continue;
-
-                if(secretCode.charAt(i) == temp) {
+                if(secretCode.charAt(i) == inputCode.charAt(i)) {
                     noofbulls++;
-                } else if(secretCode.contains(Character.toString(temp))) {
-                    noofcows++;
-                    tempString = tempString.replace(temp, '_');
+                    continue;
+                }
+
+                for(int j=0;j<size;j++) {
+                    if(i==j) {
+                        continue;
+                    }
+
+                    if(secretCode.charAt(i) == inputCode.charAt(j)){
+                        noofcows++;
+                    }
                 }
             }
 
